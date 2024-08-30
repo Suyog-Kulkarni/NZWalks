@@ -11,9 +11,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<NZWalksDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("NZWalksConnectionString"),
-        new MySqlServerVersion(new Version(8, 0, 36)) // Specify your MySQL server version here
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("NZWalksConnectionString")
     )
 );
 
