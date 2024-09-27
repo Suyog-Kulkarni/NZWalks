@@ -12,7 +12,7 @@ namespace NZWalks.API.Repositories
 
         Task<Region> Create(AddRegionRequestDTO addRegionRequestDTO);
 
-        Task<Region?> Update([FromRoute]Guid id, [FromBody]UpdateRegionRequestDTO updateRegionRequestDTO);
+        Task<Region?> Update([FromRoute]Guid id, Region region);
 
         Task<Region?> Delete([FromRoute]Guid id);
     }

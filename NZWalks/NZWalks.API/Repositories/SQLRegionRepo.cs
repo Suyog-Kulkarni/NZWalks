@@ -40,9 +40,19 @@ namespace NZWalks.API.Repositories
 
         }
 
-        public async Task<Region?> Update([FromRoute] Guid id, [FromBody] UpdateRegionRequestDTO updateRegionRequestDTO)
+        public async Task<Region?> Update([FromRoute] Guid id, Region region)
         {
-            var region = await _context.Regions.FirstOrDefaultAsync(x => x.Id == id);
+            var existingregion = await _context.Regions.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (existingregion == null) {
+
+                return null;
+            }
+            existingregion.Name = region.Name;
+            existingregion.RegionImageUrl = region.RegionImageUrl;
+            existingregion.Code = region.Code;
+
+            await _context.SaveChangesAsync();
 
             return region;
         }
@@ -50,6 +60,15 @@ namespace NZWalks.API.Repositories
         public async Task<Region?> Delete([FromRoute] Guid id)
         {
             var region = await _context.Regions.FirstOrDefaultAsync(x => x.Id == id);
+            if (region is null)
+            {
+                return null;
+
+            }
+
+            _context.Regions.Remove(region);
+            await _context.SaveChangesAsync();
+
             return region;
 
         }
