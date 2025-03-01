@@ -44,14 +44,22 @@ namespace NZWalks.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AddWalksDTO addWalksDTO)
         {
-            //map dto to domain model
-            var walkModel = _mapper.Map<Walk>(addWalksDTO);
 
-            await _walksRepo.CreateAsync(walkModel);
+            if (ModelState.IsValid)
+            {
+                //map dto to domain model
+                var walkModel = _mapper.Map<Walk>(addWalksDTO);
 
-            //map domain model back to dto
+                await _walksRepo.CreateAsync(walkModel);
 
-            return Ok(_mapper.Map<WalkDTO>(walkModel));
+                //map domain model back to dto
+
+                return Ok(_mapper.Map<WalkDTO>(walkModel));
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
 
         }
 
@@ -59,17 +67,38 @@ namespace NZWalks.API.Controllers
         [Route("{id:Guid}")]
         public async Task<IActionResult> Update([FromRoute] Guid id, UpdateWalkDTO updateWalk)
         {
-            // map to domain
-            var WalkModel = _mapper.Map<Walk>(updateWalk);
+            if (ModelState.IsValid)
+            {
+                // map to domain
+                var WalkModel = _mapper.Map<Walk>(updateWalk);
 
-            WalkModel = await _walksRepo.UpdateAsync(id, WalkModel);
+                WalkModel = await _walksRepo.UpdateAsync(id, WalkModel);
 
-            if(WalkModel is null)
+                if (WalkModel is null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(_mapper.Map<WalkDTO>(WalkModel));
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+        }
+
+        [HttpDelete]
+        [Route("{id:Guid}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var Walk = await _walksRepo.DeleteAsync(id);
+
+            if(Walk is null)
             {
                 return NotFound();
             }
 
-            return Ok(_mapper.Map<WalkDTO>(WalkModel));
+            return Ok(_mapper.Map<WalkDTO>(Walk));
         }
     }
 }

@@ -2,7 +2,9 @@
 {
     public class RegionDTO
     {
+        /// <summary>
         public Guid Id { get; set; }
+        /// </summary>
 
         public string Name { get; set; }
 
