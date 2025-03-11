@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NZWalks.API.Data;
 using NZWalks.API.Models.Domain;
+using System.Data;
 
 namespace NZWalks.API.Repositories
 {
@@ -9,7 +10,7 @@ namespace NZWalks.API.Repositories
     {
         private readonly NZWalksDbContext _dbContext;
 
-        public SQLWalksRepo(NZWalksDbContext dbContext) 
+        public SQLWalksRepo(NZWalksDbContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -21,7 +22,46 @@ namespace NZWalks.API.Repositories
             return walk;
         }
 
-        public async Task<List<Walk>> GetAllAsync() => await _dbContext.Walks.Include("Difficulty").Include("Region").ToListAsync();
+        public async Task<List<Walk>> GetAllAsync(string? filterOn = null, string? filteQuery = null,
+            string? sortBy = null, bool isAscending = true,
+            int pageNumber = 1, int pageSize = 10)
+        {
+            var walks = _dbContext.Walks.Include("Region").Include("Difficulty");
+
+            //Without AsQueryable() → The entire dataset is fetched from the database into memory first, and then filtering happens.
+            //With AsQueryable() → The filtering is converted into an SQL query and executed in the database, reducing memory usage.
+
+            // we used AsQueryable to make sure that the filtering is done in the database and not in memory
+            // Filtering
+            
+            if (!String.IsNullOrWhiteSpace(filterOn) &&
+                !String.IsNullOrWhiteSpace(filteQuery) &&
+                filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
+            {
+                walks = walks.Where(u => EF.Functions.Like(u.Name, $"%{filteQuery}%"));
+
+            }
+
+            // sorting
+
+            if (!String.IsNullOrWhiteSpace(sortBy))
+            {
+                if (sortBy.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = isAscending ? walks.OrderBy(u => u.Name) : walks.OrderByDescending(u => u.Name);
+                }
+                else if(sortBy.Equals("Length", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = isAscending ? walks.OrderBy(u => u.LengthInKm) : walks.OrderByDescending(u => u.LengthInKm);
+                }
+            }
+
+            int skipResults = (pageNumber - 1) * pageSize;
+
+            return await walks.Skip(skipResults).Take(pageSize).ToListAsync();
+
+            //await _dbContext.Walks.Include("Difficulty").Include("Region").ToListAsync();
+        }
 
         public async Task<Walk?> GetByIdAsync(Guid id)
         {
@@ -30,18 +70,19 @@ namespace NZWalks.API.Repositories
             return Walk;
         }
 
-        public async Task<Walk?> UpdateAsync([FromRoute]Guid id, Walk walk)
+        public async Task<Walk?> UpdateAsync([FromRoute] Guid id, Walk walk)
         {
-            var WalkDB = await _dbContext.Walks.Include("Difficulty").Include("Region").FirstOrDefaultAsync(x => x.Id==id);
-            if (WalkDB is null) {
+            var WalkDB = await _dbContext.Walks.Include("Difficulty").Include("Region").FirstOrDefaultAsync(x => x.Id == id);
+            if (WalkDB is null)
+            {
                 return null;
             }
-            WalkDB.Description= walk.Description;
-            WalkDB.Name= walk.Name;
-            WalkDB.LengthInKm= walk.LengthInKm;
-            WalkDB.WalkImageUrl= walk.WalkImageUrl;
-            WalkDB.RegionId= walk.RegionId;
-            WalkDB.DifficultyId= walk.DifficultyId;
+            WalkDB.Description = walk.Description;
+            WalkDB.Name = walk.Name;
+            WalkDB.LengthInKm = walk.LengthInKm;
+            WalkDB.WalkImageUrl = walk.WalkImageUrl;
+            WalkDB.RegionId = walk.RegionId;
+            WalkDB.DifficultyId = walk.DifficultyId;
 
             await _dbContext.SaveChangesAsync();
             return WalkDB;
@@ -52,7 +93,7 @@ namespace NZWalks.API.Repositories
         {
             var WalkDb = await _dbContext.Walks.FirstOrDefaultAsync(x => x.Id == id);
 
-            if(WalkDb is null)
+            if (WalkDb is null)
             {
                 return null;
             }
@@ -66,4 +107,3 @@ namespace NZWalks.API.Repositories
         }
     }
 }
-    

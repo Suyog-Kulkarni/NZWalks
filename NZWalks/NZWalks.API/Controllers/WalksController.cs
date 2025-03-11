@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NZWalks.API.CustomActionFilters;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
 using NZWalks.API.Repositories;
@@ -14,15 +14,19 @@ namespace NZWalks.API.Controllers
         private readonly IMapper _mapper;
         private readonly IWalksRepo _walksRepo;
 
-        public WalksController(IMapper mapper, IWalksRepo walksRepo) {
+        public WalksController(IMapper mapper, IWalksRepo walksRepo)
+        {
             _mapper = mapper;
             _walksRepo = walksRepo;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        //api/walks?filterOn=Name&filterQuery=Track
+        public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery, [
+            FromQuery] string? sortBy, [FromQuery] bool? isAscending, 
+            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
         {
-            var walks = await _walksRepo.GetAllAsync();
+            var walks = await _walksRepo.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, pageNumber, pageSize);
 
             // map to dto
             return Ok(_mapper.Map<List<WalkDTO>>(walks));
@@ -33,7 +37,7 @@ namespace NZWalks.API.Controllers
         {
             var Walk = await _walksRepo.GetByIdAsync(id);
 
-            if(Walk is null)
+            if (Walk is null)
             {
                 return NotFound();
             }
@@ -42,49 +46,40 @@ namespace NZWalks.API.Controllers
         }
 
         [HttpPost]
+        [ValidateModel]
         public async Task<IActionResult> Create([FromBody] AddWalksDTO addWalksDTO)
         {
 
-            if (ModelState.IsValid)
-            {
-                //map dto to domain model
-                var walkModel = _mapper.Map<Walk>(addWalksDTO);
+            //map dto to domain model
+            var walkModel = _mapper.Map<Walk>(addWalksDTO);
 
-                await _walksRepo.CreateAsync(walkModel);
+            await _walksRepo.CreateAsync(walkModel);
 
-                //map domain model back to dto
+            //map domain model back to dto
 
-                return Ok(_mapper.Map<WalkDTO>(walkModel));
-            }
-            else
-            {
-                return BadRequest(ModelState);
-            }
+            return Ok(_mapper.Map<WalkDTO>(walkModel));
+
 
         }
 
         [HttpPut]
         [Route("{id:Guid}")]
+        [ValidateModel]
         public async Task<IActionResult> Update([FromRoute] Guid id, UpdateWalkDTO updateWalk)
         {
-            if (ModelState.IsValid)
+
+            // map to domain
+            var WalkModel = _mapper.Map<Walk>(updateWalk);
+
+            WalkModel = await _walksRepo.UpdateAsync(id, WalkModel);
+
+            if (WalkModel is null)
             {
-                // map to domain
-                var WalkModel = _mapper.Map<Walk>(updateWalk);
-
-                WalkModel = await _walksRepo.UpdateAsync(id, WalkModel);
-
-                if (WalkModel is null)
-                {
-                    return NotFound();
-                }
-
-                return Ok(_mapper.Map<WalkDTO>(WalkModel));
+                return NotFound();
             }
-            else
-            {
-                return BadRequest(ModelState);
-            }
+
+            return Ok(_mapper.Map<WalkDTO>(WalkModel));
+
         }
 
         [HttpDelete]
@@ -93,7 +88,7 @@ namespace NZWalks.API.Controllers
         {
             var Walk = await _walksRepo.DeleteAsync(id);
 
-            if(Walk is null)
+            if (Walk is null)
             {
                 return NotFound();
             }
