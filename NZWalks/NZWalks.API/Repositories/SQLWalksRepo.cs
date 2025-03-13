@@ -33,7 +33,7 @@ namespace NZWalks.API.Repositories
 
             // we used AsQueryable to make sure that the filtering is done in the database and not in memory
             // Filtering
-            
+                
             if (!String.IsNullOrWhiteSpace(filterOn) &&
                 !String.IsNullOrWhiteSpace(filteQuery) &&
                 filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
