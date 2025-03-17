@@ -27,8 +27,7 @@ builder.Services.AddDbContext<NZWalksAuthDbContext>(options =>
         builder.Configuration.GetConnectionString("NZWalksAuthConnectionString")
     )
 );
-builder.Services.AddScoped<IRegionRepo, SQLRegionRepo>();
-builder.Services.AddScoped<IWalksRepo, SQLWalksRepo>();
+
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
 builder.Services.AddIdentityCore<IdentityUser>() // this lines tells the application to use the IdentityUser class for the identity 
@@ -69,9 +68,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) // th
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])) // encoding because the key is a string and it needs to be converted to bytes
         // symmetric key because the same key is used to sign and validate the token
     });
-
+// the flow is like this:
+// 1. the authentication middleware checks the Authorization header after the request is received
+// 2. It extracts the JWT and uses the configured TokenValidationParameters to validate the token against the parameters
+// 3. If the token is valid,  the middleware extracts the claims and creates a ClaimsPrincipal object and sets it on the HttpContext.User property 
+// 4. The Authorize attribute checks if HttpContext.User is authenticated. If it's not, the request is rejected with 401 Unauthorized.
+builder.Services.AddScoped<IRegionRepo, SQLRegionRepo>();
+builder.Services.AddScoped<IWalksRepo, SQLWalksRepo>();
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 var app = builder.Build();
 
+
+// Once you've configured authentication in Program.cs, ASP.NET Core automatically hooks into
+// the middleware pipeline and handles token validation for every request.
+// The [Authorize] attribute just checks the result.
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -80,7 +90,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
+app.UseAuthentication(); //  Extracts the JWT from the Authorization header and validates it.
 app.UseAuthorization();
 
 app.MapControllers();
