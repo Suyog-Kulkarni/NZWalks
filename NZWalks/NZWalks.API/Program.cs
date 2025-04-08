@@ -1,26 +1,69 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using NZWalks.API.Data;
 using NZWalks.API.Mappings;
 using NZWalks.API.Repositories;
 using System.Text;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var logger = new LoggerConfiguration()
+    .WriteTo.File("Logs/NzWalks_logs.txt", rollingInterval: RollingInterval.Minute)
+    .MinimumLevel.Information()
+    .CreateLogger();
+
+builder.Logging.ClearProviders(); // this is used to clear the default logging providers
+builder.Logging.AddSerilog(logger); // this is used to add the serilog logger to the logging providers
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor(); // this is used to access the httpcontext in the repository classes and it is used to get the user id from the token in the repository classes
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// add authorization UI to swagger 
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "NZWalks.API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = JwtBearerDefaults.AuthenticationScheme
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = JwtBearerDefaults.AuthenticationScheme
+                },
+                Scheme = "oauth2",
+                Name = JwtBearerDefaults.AuthenticationScheme,
+                In = ParameterLocation.Header,
+            },
+            new List<string>()
+
+        }
+    });
+});
 
 builder.Services.AddDbContext<NZWalksDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("NZWalksConnectionString")
-    )
-);
+options.UseSqlServer(
+    builder.Configuration.GetConnectionString("NZWalksConnectionString")
+));
 
 builder.Services.AddDbContext<NZWalksAuthDbContext>(options =>
     options.UseSqlServer(
@@ -76,6 +119,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) // th
 builder.Services.AddScoped<IRegionRepo, SQLRegionRepo>();
 builder.Services.AddScoped<IWalksRepo, SQLWalksRepo>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<IImageRepository, LocalImageRepository>();
 var app = builder.Build();
 
 
@@ -92,7 +136,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication(); //  Extracts the JWT from the Authorization header and validates it.
 app.UseAuthorization();
-
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Images")),
+    RequestPath = "/Images"
+    // this is used to serve the images from the Images folder in the root directory of the project
+});
 app.MapControllers();
 
 app.Run();

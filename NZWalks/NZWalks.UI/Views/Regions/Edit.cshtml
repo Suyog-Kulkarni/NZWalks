@@ -1,0 +1,24 @@
+﻿@model NZWalks.UI.Models.DTO.RegionsDTO
+<h1 class="mt-3">Edit Region</h1>
+
+
+<div class="card-body p-4">
+    <form method="post" asp-action="Edit">
+    <input type="hidden" name="Id" asp-for="Id" />
+    <div class="mt-3">
+        <label class="form-label"> </label>
+        <input type="text" asp-for="Name" class="form-control border-0 shadow" />
+    </div>
+    <div class="mt-3">
+        <label class="form-label"> </label>
+        <input type="text" asp-for="Code" class="form-control border-0 shadow" />
+    </div>
+    <div class="mt-3">
+        <label class="form-label"> </label>
+        <input type="text" asp-for="RegionImageUrl" class="form-control border-0 shadow" />
+    </div>
+    
+        <button type="submit" class="btn btn-primary" style="width:150px">Update</button>
+        <button type="submit" asp-controller="Regions" asp-action="Delete" class="btn btn-primary" style="width:150px">Delete</button>
+    </form>
+</div>

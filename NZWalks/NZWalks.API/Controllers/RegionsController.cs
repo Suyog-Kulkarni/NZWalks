@@ -11,7 +11,7 @@ namespace NZWalks.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] 
+     
     public class RegionsController : ControllerBase
     {
         private readonly NZWalksDbContext _context;
@@ -25,7 +25,7 @@ namespace NZWalks.API.Controllers
         }
 
         [HttpGet]
-
+        //[Authorize(Roles="Reader")]
         public async Task<IActionResult> GetAll()
         {
             // get the data from tha database - domain model
@@ -52,6 +52,7 @@ namespace NZWalks.API.Controllers
 
         [HttpGet]
         [Route("{id:Guid}")]
+        //[Authorize(Roles = "Reader")]
         public async Task<IActionResult> GetByID(Guid id)
         {
             // domain model
@@ -75,6 +76,7 @@ namespace NZWalks.API.Controllers
 
         [HttpPost]
         [ValidateModel]
+        //[Authorize(Roles = "Writer")]
         public async Task<IActionResult> Create([FromBody] AddRegionRequestDTO addRegionRequestDTO)
         {
             // we dont need id here so thats why we are using dto or else we can directly pass region
@@ -95,6 +97,7 @@ namespace NZWalks.API.Controllers
         [HttpPut]
         [Route("{id:Guid}")]
         [ValidateModel]
+        //[Authorize(Roles = "Writer")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateRegionRequestDTO updateRegionRequestDTO)
         {
             // map dto to model
@@ -117,7 +120,7 @@ namespace NZWalks.API.Controllers
         }
         [HttpDelete]
         [Route("{id:Guid}")]
-
+        //[Authorize(Roles = "Writer")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             var region = await _regionRepo.Delete(id);
