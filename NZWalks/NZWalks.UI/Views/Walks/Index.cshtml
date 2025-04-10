@@ -1,44 +1,88 @@
 ﻿@model IEnumerable<NZWalks.UI.Models.DTO.WalksDTO>
 
-<h1 class="mt-3">Walk</h1>
-<div class="d-flex justify-content-end">
-    <a class="btn btn-secondary" asp-controller="Walks" asp-action="Add">Add Walk</a>
-    
-</div>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>LengthInKm</th>
-            <th>WalkImageUrl</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var region in Model)
-        {
-            <tr>
-                <td>@region.Name</td>
-                <td>@region.Description</td>
-                <td>@region.LengthInKm</td>
-                <td>
-                    <img src="@region.WalkImageUrl" alt="Walk Image" style="width: 100px; height: auto;" />
-                    @* <a href="@region.WalkImageUrl" target="_blank" class="btn btn-secondary mx-2">
-                        <i class="bi bi-eye"></i>View Image
-                    </a> *@
+@{
+    ViewData["Title"] = "Walks List";
+}
 
-                <td>
-                    <a class="btn btn-primary" asp-controller="Walks" asp-action="Edit" asp-route-id="@region.Id" class="btn btn-primary mx-2">
-                        <i class="bi bi-pencil-square"></i>Edit
-                    </a>
-                </td>
-                <td>
-                    <a asp-controller="Walks" asp-action="Delete" asp-route-id="@region.Id"
-                       class="btn btn-danger mx-2">
-                        <i class="bi bi-trash-fill"></i>Delete
-                    </a>
-                </td>
+<h1 class="mt-3">Walks</h1>
+
+@* Display TempData messages *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+
+<div class="d-flex justify-content-end mb-3">
+    <a class="btn btn-primary" asp-controller="Walks" asp-action="Add">
+        <i class="bi bi-plus-circle"></i> Add New Walk
+    </a>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Length (Km)</th>
+                <th>Image</th>
+                <th>Difficulty</th> @* Assuming WalksDTO has Difficulty Name/Code *@
+                <th>Region</th>     @* Assuming WalksDTO has Region Name/Code *@
+                <th>Actions</th>    @* Combined Actions column *@
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var walk in Model) @* Changed variable name for clarity *@
+            {
+                <tr>
+                    <td>@walk.Name</td>
+                    <td>@walk.Description</td>
+                    <td>@walk.LengthInKm</td>
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(walk.WalkImageUrl))
+                        {
+                            <img src="@walk.WalkImageUrl" alt="Walk Image for @walk.Name" style="width: 100px; height: auto; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <span>No Image</span>
+                        }
+                    </td>
+                     @* Display Difficulty and Region - Adjust property names as needed in your WalksDTO *@
+                    <td>@walk.Difficulty?.Name</td> @* Example: Accessing Name property of nested Difficulty DTO *@
+                    <td>@walk.Region?.Name</td>     @* Example: Accessing Name property of nested Region DTO *@
+                    <td> @* Combined Actions Cell *@
+                        <div class="d-flex justify-content-start align-items-center"> @* Use flexbox for button alignment *@
+                            <a class="btn btn-info btn-sm me-2" asp-controller="Walks" asp-action="Edit" asp-route-id="@walk.Id">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+
+                            @* Delete action requires a form for POST *@
+                            <form method="post" asp-controller="Walks" asp-action="Delete" asp-route-id="@walk.Id" onsubmit="return confirm('Are you sure you want to delete this walk?');">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="bi bi-trash-fill"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No walks found.</p>
+}
