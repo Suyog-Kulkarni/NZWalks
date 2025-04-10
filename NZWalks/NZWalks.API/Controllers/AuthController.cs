@@ -20,7 +20,7 @@ public class AuthController : ControllerBase
         _userManager = userManager;
         _tokenRepository = tokenRepository;
     }
-    [Route("register")]
+    [Route("register")]// this attribute 
     [HttpPost]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDTO requestDTO)
     {

@@ -1,0 +1,44 @@
+﻿@model IEnumerable<NZWalks.UI.Models.DTO.WalksDTO>
+
+<h1 class="mt-3">Walk</h1>
+<div class="d-flex justify-content-end">
+    <a class="btn btn-secondary" asp-controller="Walks" asp-action="Add">Add Walk</a>
+    
+</div>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>LengthInKm</th>
+            <th>WalkImageUrl</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var region in Model)
+        {
+            <tr>
+                <td>@region.Name</td>
+                <td>@region.Description</td>
+                <td>@region.LengthInKm</td>
+                <td>
+                    <img src="@region.WalkImageUrl" alt="Walk Image" style="width: 100px; height: auto;" />
+                    @* <a href="@region.WalkImageUrl" target="_blank" class="btn btn-secondary mx-2">
+                        <i class="bi bi-eye"></i>View Image
+                    </a> *@
+
+                <td>
+                    <a class="btn btn-primary" asp-controller="Walks" asp-action="Edit" asp-route-id="@region.Id" class="btn btn-primary mx-2">
+                        <i class="bi bi-pencil-square"></i>Edit
+                    </a>
+                </td>
+                <td>
+                    <a asp-controller="Walks" asp-action="Delete" asp-route-id="@region.Id"
+                       class="btn btn-danger mx-2">
+                        <i class="bi bi-trash-fill"></i>Delete
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

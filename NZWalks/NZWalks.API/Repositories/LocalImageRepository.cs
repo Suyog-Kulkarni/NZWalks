@@ -22,7 +22,6 @@ namespace NZWalks.API.Repositories
             await image.File.CopyToAsync(stream);
 
             var imagePath = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}{_httpContextAccessor.HttpContext.Request.PathBase}/Images/{image.FileName}{image.FileExtension}";
-
             image.FilePath = imagePath; 
             await _dbContext.Images.AddAsync(image);
             await _dbContext.SaveChangesAsync();
