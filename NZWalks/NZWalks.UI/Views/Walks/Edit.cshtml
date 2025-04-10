@@ -1,0 +1,74 @@
+@model NZWalks.UI.Models.DTO.WalksDTO
+
+@{
+    ViewData["Title"] = "Edit Walk";
+}
+
+<h1 class="mt-3">Edit Walk</h1>
+
+<form method="post" asp-action="Edit" class="mt-3">
+    @* Display validation errors *@
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    @* Include the Id as a hidden field so it's posted back *@
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        @* You might need validation spans if you add attributes to WalksDTO or use an EditViewModel *@
+        @* <span asp-validation-for="Name" class="text-danger"></span> *@
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+        @* <span asp-validation-for="Description" class="text-danger"></span> *@
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="LengthInKm" class="form-label">Length (Km)</label>
+        <input asp-for="LengthInKm" type="number" step="0.01" class="form-control" />
+        @* <span asp-validation-for="LengthInKm" class="text-danger"></span> *@
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="WalkImageUrl" class="form-label">Walk Image URL (Optional)</label>
+        <input asp-for="WalkImageUrl" class="form-control" />
+        @* <span asp-validation-for="WalkImageUrl" class="text-danger"></span> *@
+    </div>
+
+     @* Note: DifficultyId and RegionId should ideally be dropdowns.
+        Fetch data in GET Edit action and pass to view.
+        Use <select asp-for="DifficultyId" asp-items="@ViewBag.DifficultiesList" class="form-select">...
+        The current value should be pre-selected based on Model.DifficultyId.
+        For now, showing read-only or simple inputs. Adjust based on your DTO structure.
+     *@
+    <div class="mb-3">
+        <label asp-for="DifficultyId" class="form-label">Difficulty ID</label>
+        @* If you have Difficulty object in WalksDTO, display its name, otherwise the ID *@
+        @* <input asp-for="Difficulty.Name" class="form-control" readonly /> *@
+        <input asp-for="DifficultyId" class="form-control" /> @* Replace with <select> later *@
+        @* <span asp-validation-for="DifficultyId" class="text-danger"></span> *@
+    </div>
+
+     <div class="mb-3">
+        <label asp-for="RegionId" class="form-label">Region ID</label>
+        @* If you have Region object in WalksDTO, display its name, otherwise the ID *@
+        @* <input asp-for="Region.Name" class="form-control" readonly /> *@
+        <input asp-for="RegionId" class="form-control" /> @* Replace with <select> later *@
+        @* <span asp-validation-for="RegionId" class="text-danger"></span> *@
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        <i class="bi bi-save"></i> Update Walk
+    </button>
+    <a asp-action="Index" class="btn btn-secondary ms-2">
+        <i class="bi bi-x-circle"></i> Cancel
+    </a>
+</form>
+
+@* Include client-side validation scripts (optional for DTO unless it has attributes) *@
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 
