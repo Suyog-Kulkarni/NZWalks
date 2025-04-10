@@ -3,7 +3,6 @@ using NZWalks.UI.Models;
 using NZWalks.UI.Models.DTO;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace NZWalks.UI.Controllers
 {
@@ -98,7 +97,7 @@ namespace NZWalks.UI.Controllers
              };*/
 
             var Content = new StringContent(JsonSerializer.Serialize(regions), Encoding.UTF8, "application/json");
-            var reponseMessage = await client.PutAsync($"https://localhost:7002/api/regions/{regions.Id}",Content);
+            var reponseMessage = await client.PutAsync($"https://localhost:7002/api/regions/{regions.Id}", Content);
 
             reponseMessage.EnsureSuccessStatusCode();
             var response = await reponseMessage.Content.ReadFromJsonAsync<RegionsDTO>();
@@ -121,7 +120,7 @@ namespace NZWalks.UI.Controllers
 
             var httpResponseMessage = await responseMessage.Content.ReadFromJsonAsync<RegionsDTO>();
 
-            if (httpResponseMessage != null) 
+            if (httpResponseMessage != null)
             {
                 RedirectToAction("Index", "Regions");
             }
